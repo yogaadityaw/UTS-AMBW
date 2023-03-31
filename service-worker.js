@@ -20,46 +20,18 @@ const urlsToCache = [
 '/images/icons/icon-152x152.png'
 ];
 
-self.addEventListener('install', function(event) {
-// Perform install steps
-event.waitUntil(
-caches.open(CACHE_NAME)
-.then(function(cache) {
-console.log('Opened cache');
-return cache.addAll(urlsToCache);
-})
-);
+self.addEventListener("install", function(event) {
+    event.waitUntil(
+        caches.open(cacheName).then(function(cache) {
+            return cache.addAll(filesToCache);
+        })
+    );
 });
 
-self.addEventListener('fetch', function(event) {
-event.respondWith(
-caches.match(event.request)
-.then(function(response) {
-// Cache hit - return response
-if (response) {
-console.log('cache hit');
-return response;
-}
-console.log('cache miss');
-// Fetch from network
-return fetch(event.request)
-    .then(function(response) {
-        // Check if we received a valid response
-        if(!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-        }
-
-        // Clone the response
-        const responseToCache = response.clone();
-
-        // Add the response to the cache
-        caches.open(CACHE_NAME)
-            .then(function(cache) {
-                cache.put(event.request, responseToCache);
-            });
-
-        return response;
-    })
-})
-);
+self.addEventListener("fetch", function(event) {
+    event.respondWith(
+        caches.match(event.request).then(function(response) {
+            return response || fetch(event.request);
+        })
+    );
 });
